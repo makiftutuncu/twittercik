@@ -1,0 +1,58 @@
+.logo
+{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.row-with-margin
+{
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.user-info
+{
+    float: left;
+}
+
+.user-logout
+{
+    float: right;
+}
+
+.tweetcik-input
+{
+	resize: vertical;
+}
+
+.tweetcik-counter
+{
+    float: left;
+}
+
+.tweetcik-button
+{
+    float: right;
+}
+
+.tweetcik-user
+{
+	font-weight: bold;
+}
+
+.tweetcik-date
+{
+	font-style: italic;
+}
+
+.dialog-title
+{
+	font-weight: bold;
+}
+
+.error
+{
+	text-align: center;
+	display: visible;
+}
