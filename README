@@ -1,4 +1,4 @@
-This is your new Play application
+*twittercik*
 =====================================
 
-This file will be packaged with your application, when using `play dist`.
+A tiny Twitter-like web application written in Scala and Play Framework
