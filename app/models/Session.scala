@@ -5,55 +5,47 @@ import anorm._
 import play.api.db.DB
 import anorm.~
 import play.api.Play.current
+import play.api.Logger
+import helpers.SHA512Generator
 
-case class Session(uuid: String, username: String)
+case class Session(cookieid: String, username: String)
 
 object Session
 {
   val session = {
-    get[String]("uuid") ~ get[String]("username") map {
-      case uuid ~ username => Session(uuid, username)
+    get[String]("cookieid") ~ get[String]("username") map {
+      case cookieid ~ username => Session(cookieid, username)
     }
   }
 
-  def getSession(uuid: String): Option[Session] = {
+  def getByCookieId(cookieid: String): Option[Session] = {
     DB.withConnection { implicit c =>
-      val sessions: List[Session] = SQL("select * from sessions where uuid={uuid}").on(
-        'uuid -> uuid
-      ).as(session *)
+      val sessions: List[Session] = SQL("select * from sessions where cookieid={cookieid} limit 1").on('cookieid -> cookieid).as(session *)
 
-      if(sessions.length != 0)
+      if(sessions.length == 1)
       {
-        println("Session.getSession() - Found session in db with: " + uuid)
-        Option(sessions(0))
+        Logger.debug(s"Session.getByCookieId() - Session with cookieid ${cookieid} is found, returning it...")
+        sessions.headOption
       }
       else
       {
-        println("Session.getSession() - Couldn't find session in db with: " + uuid)
+        Logger.info(s"Session.getByCookieId() - Session with cookieid ${cookieid} is not found!")
         None
       }
     }
   }
 
   def create(username: String): String = {
-    val uuid: String = generateUUID()
-    println("Session.create() - Creating a session in db with: " + uuid + " for username " + username + "...")
+    val cookieid: String = SHA512Generator.generate(username + System.currentTimeMillis())
     DB.withConnection { implicit c =>
-      SQL("insert into sessions (uuid, username) values ({uuid}, {username})").on(
-        'uuid -> uuid, 'username -> username
-      ).executeUpdate()
+      SQL("insert into sessions (cookieid, username) values ({cookieid}, {username})").on('cookieid -> cookieid, 'username -> username).executeUpdate()
     }
-    uuid
+    cookieid
   }
 
-  def delete(uuid: String) = {
-    println("Session.delete() - Deleting the session in db with: " + uuid + "...")
+  def delete(cookieid: String) = {
     DB.withConnection { implicit c =>
-      SQL("delete from sessions where uuid = {uuid}").on(
-        'uuid -> uuid
-      ).executeUpdate()
+      SQL("delete from sessions where cookieid = {cookieid}").on('cookieid -> cookieid).executeUpdate()
     }
   }
-
-  def generateUUID(): String = java.util.UUID.randomUUID().toString()
 }

@@ -1,0 +1,17 @@
+@(username: String, tweetcikList: List[Tweetcik])
+<!-- Timeline -->
+<div class="panel panel-success">
+    <div class="panel-heading dialog-title">
+        <span class="glyphicon glyphicon-globe">&nbsp;</span>All Tweetciks
+    </div>
+    <ul class="list-group">
+        @if(tweetcikList.length == 0) {
+        <li class="list-group-item">
+            <p style="text-align: center">There is no tweetcik posted yet. Why not post one now?</p>
+        </li>
+        }
+        @for(t <- tweetcikList.reverse) {
+            @tweetcik(if(username == t.username) {t.id} else {-1}, t.username, t.content, t.dateString)
+        }
+    </ul>
+</div>

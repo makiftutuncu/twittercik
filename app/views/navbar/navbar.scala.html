@@ -1,0 +1,12 @@
+@(content: Html)
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <ul class="nav navbar-nav">
+                <li><img src='@routes.Assets.at("img/small_logo.png")' alt="Navbar Logo"></li>
+                <li><a class="navbar-brand" href='@routes.Application.index'>Twittercık</a></li>
+            </ul>
+        </div>
+        @content
+    </div>
+</div>

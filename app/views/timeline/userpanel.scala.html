@@ -1,0 +1,14 @@
+@(numberOfTweetciks: Int)
+<!-- User panel -->
+<div class="panel panel-success">
+    <div class="panel-heading dialog-title">
+        <span class="glyphicon glyphicon-user">&nbsp;</span>Your Profile
+    </div>
+    <div class="panel-body" style="text-align: center;">
+        @if(numberOfTweetciks > 0) {
+            You posted @numberOfTweetciks @if(numberOfTweetciks == 1) {tweetcik} else {tweetciks} in total.
+        } else {
+            You haven't posted any tweetciks yet.
+        }
+    </div>
+</div>

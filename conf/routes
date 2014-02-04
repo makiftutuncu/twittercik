@@ -6,17 +6,18 @@
 GET     /                           controllers.Application.index
 
 # Login page
-GET     /login                      controllers.Login.index
-POST    /login                      controllers.Login.submit
-POST    /logout                     controllers.Login.logout
+GET     /login                      controllers.Login.renderPage
+POST    /login                      controllers.Login.submitLoginForm
 
 # Register page
-GET     /register                   controllers.Register.index
-POST    /register                   controllers.Register.submit
+GET     /register                   controllers.Register.renderPage
+POST    /register                   controllers.Register.submitRegisterForm
 
 # Timeline page
-GET     /timeline                   controllers.Timeline.index
-POST    /timeline                   controllers.Timeline.submit
+GET     /timeline                   controllers.Timeline.renderPage
+POST    /submitTweetcik             controllers.Timeline.submitTweetcik
+POST    /removeTweetcik/:id         controllers.Timeline.removeTweetcik(id: Long)
+POST    /logout                     controllers.Logout.logout
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

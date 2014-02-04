@@ -5,10 +5,11 @@ import anorm._
 import play.api.db.DB
 import anorm.~
 import play.api.Play.current
+import play.api.Logger
 
 case class Tweetcik(id: Long, username: String, content: String, date: Long)
 {
-  def dateString: String = new java.text.SimpleDateFormat("dd MMMM yyyy HH:mm:ss").format(new java.util.Date(date))
+  def dateString: String = new java.text.SimpleDateFormat("dd MMMM yyyy, HH:mm:ss").format(new java.util.Date(date))
 }
 
 object Tweetcik
@@ -20,17 +21,29 @@ object Tweetcik
   }
 
   def getAllTweetciks(): List[Tweetcik] = {
-    println("Tweetcik.getAllTweetciks() - Getting all twettciks...")
+    Logger.debug("Tweetcik.getAllTweetciks() - Getting all twettciks...")
     DB.withConnection { implicit c =>
       SQL("select * from tweetciks").as(tweetcik *)
     }
   }
 
+  def getTweetciksByUsername(username: String): List[Tweetcik] = {
+    Logger.debug(s"Tweetcik.getTweetciksByUsername() - Getting twettciks of user named ${username}...")
+    DB.withConnection { implicit c =>
+      SQL("select * from tweetciks where username={username}").on('username -> username).as(tweetcik *)
+    }
+  }
+
   def create(username: String, content: String, date: Long) = {
-    println("Tweetcik.create() - Creating a tweetcik as \"" + content + "\" for username " + username + "...")
     DB.withConnection { implicit c =>
       SQL("insert into tweetciks (username, content, tweetcikdate) values ({username}, {content}, {date})").on(
         'username -> username, 'content -> content, 'date -> date).executeUpdate()
+    }
+  }
+
+  def remove(id: Long) = {
+    DB.withConnection { implicit c =>
+      SQL("delete from tweetciks where id={id}").on('id -> id).executeUpdate()
     }
   }
 }

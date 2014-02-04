@@ -1,28 +1,26 @@
 # Twittercık schema
 
 # --- !Ups
-
 CREATE TABLE users (
-    username varchar(24) NOT NULL,
-    password varchar(32) NOT NULL
-);
+    id INT(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(24) NOT NULL UNIQUE,
+    password CHAR(128) NOT NULL,
+    salt CHAR(128) NOT NULL
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-CREATE SEQUENCE tweetcik_id_seq;
 CREATE TABLE tweetciks (
-    id integer NOT NULL DEFAULT nextval('tweetcik_id_seq'),
-    username varchar(24) NOT NULL,
-    content varchar(140) NOT NULL,
-    tweetcikdate bigint NOT NULL
-);
+    id INT(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(24) NOT NULL,
+    content VARCHAR(140) NOT NULL,
+    tweetcikdate BIGINT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE sessions (
-    uuid varchar(36) NOT NULL,
-    username varchar(24) NOT NULL
-);
+    cookieid CHAR(128) NOT NULL UNIQUE,
+    username VARCHAR(24) NOT NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 # --- !Downs
-
 DROP TABLE users;
 DROP TABLE tweetciks;
 DROP TABLE sessions;
-DROP SEQUENCE tweetcik_id_seq;

@@ -1,0 +1,17 @@
+<!-- New tweetcik panel -->
+<div class="panel panel-success">
+    <div class="panel-heading dialog-title">
+        <span class="glyphicon glyphicon-pencil">&nbsp;</span>Post a new tweecik
+    </div>
+    <div class="panel-body">
+        <form action='@routes.Timeline.submitTweetcik' method="post">
+            <p>
+                <textarea rows="2" id="tweetcik" name="tweetcik" oninput="ensureTweetcikLength(this);" class="form-control input-block-level tweetcik-input" placeholder="Enter your tweetcik here."></textarea>
+            </p>
+            <p>
+                <div id="tweetcik-counter" class="tweetcik-counter">140</div>
+                <button id="tweetcik-button" class="btn btn-success tweetcik-button" type="submit">Tweetcik!</button>
+            </p>
+        </form>
+    </div>
+</div>

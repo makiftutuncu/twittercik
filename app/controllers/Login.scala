@@ -4,66 +4,66 @@ import play.api.mvc._
 import play.api.data.Form
 import play.api.data.Forms._
 import models.{User, Session}
+import play.api.Logger
+import helpers.SHA512Generator
+
+case class LoginFormUser(username: String, hashedpassword: String, keeploggedin: Option[String])
 
 object Login extends Controller {
 
-  val loginForm: Form[User] = Form(
+  val loginForm: Form[LoginFormUser] = Form(
     mapping(
       "username" -> text(3, 24),
-      "password" -> text(6)
-    )(User.apply)(User.unapply)
+      "hashedpassword" -> text(6),
+      "keeploggedin" -> optional(text)
+    )(LoginFormUser.apply)(LoginFormUser.unapply)
   )
 
-  def index = Action {
+  def renderPage = Action {
     implicit request => Application.isAuthorized(request) match {
       case Some(session: Session) => {
-        println("Login.index - Redirecting to timeline with " + session + "...")
-        Redirect(routes.Timeline.index())
+        Logger.debug(s"Login.renderPage() - User named ${session.username} is already logged in. Redirecting to timeline...")
+        Redirect(routes.Timeline.renderPage())
       }
       case None => {
-        println("Login.index - Redirecting to login...")
-        Unauthorized(views.html.login())
+        Logger.debug("Login.renderPage() - Rendering page...")
+        Ok(views.html.pages.login())
       }
     }
   }
 
-  def submit = Action {
+  def submitLoginForm = Action {
     implicit request => loginForm.bindFromRequest.fold(
       errors => {
-        println("Login.submit - Username or password in login form was invalid!")
-        BadRequest(views.html.login("username_password_invalid"))
+        Logger.info("Login.submitLoginForm() - Username or password in login form was invalid! " + errors.errorsAsJson)
+        BadRequest(views.html.pages.login("username_password_invalid"))
       },
-      user => {
-        println("Login.submit - Login form was valid for " + user)
-        User.getUser(user.username) match {
+      loginFormUser => {
+        Logger.debug(s"Login.submitLoginForm() - Login form was valid for ${loginFormUser}.")
+        User.getByUsername(loginFormUser.username) match {
           case Some(u: User) => {
-            if(user.password.hashCode().toString == u.password) {
-              println("Login.submit - Username and password matches")
-              val uuid: String = Session.create(user.username)
-              Redirect(routes.Timeline.index()).withSession("logged_user" -> uuid)
+            val saltedPassword = loginFormUser.hashedpassword + u.salt
+            val calculatedPassword = SHA512Generator.generate(saltedPassword)
+            if(calculatedPassword == u.password) {
+              Logger.debug(s"Login.submitLoginForm() - Username and password matches for ${loginFormUser.username}.")
+              val cookieid = Session.create(loginFormUser.username)
+              loginFormUser.keeploggedin match {
+                case Some(keeploggedin: String) => Redirect(routes.Timeline.renderPage()).withCookies(Cookie(name = "logged_user", value = cookieid, maxAge = Option(60 * 60 * 24 * 15)))
+                case _ => Redirect(routes.Timeline.renderPage()).withSession("logged_user" -> cookieid)
+              }
             }
             else
             {
-              println("Login.submit - Username and password doesn't match!")
-              BadRequest(views.html.login("username_password_mismatch"))
+              Logger.info("Login.submitLoginForm() - Username and password doesn't match!")
+              BadRequest(views.html.pages.login("username_password_mismatch"))
             }
           }
           case None => {
-            println("Login.submit - Username and password doesn't match!")
-            BadRequest(views.html.login("username_password_mismatch"))
+            Logger.info("Login.submitLoginForm() - Username and password doesn't match!")
+            BadRequest(views.html.pages.login("username_password_mismatch"))
           }
         }
       }
     )
-  }
-
-  def logout = Action {
-    implicit request => Application.isAuthorized(request) match {
-      case Some(session: Session) => {
-        Session.delete(session.uuid)
-        Ok(views.html.welcome()).withNewSession
-      }
-      case None => Ok(views.html.welcome()).withNewSession
-    }
   }
 }

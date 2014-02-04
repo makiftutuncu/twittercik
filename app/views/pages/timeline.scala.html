@@ -1,0 +1,35 @@
+@(username: String, numberOfTweetciks: Int, tweetcikList: List[Tweetcik])
+@import navbar._
+@import views.html.timeline._
+@scripts = {
+<!-- Character counter JS -->
+<script src='@routes.Assets.at("js/counter.js")'></script>
+}
+@base("Twittercık", scripts) {
+@navbar {
+<ul class="nav navbar-nav navbar-right">
+    <li>
+        <div class="user-info navbar-text">Welcome <b>@@@username</b>!</div>
+    </li>
+    <li>
+        <form action="@routes.Logout.logout" method="post">
+            <button class="btn btn-success navbar-btn user-logout" type="submit">Logout</button>
+        </form>
+    </li>
+</ul>
+}
+<!-- Main container-->
+<div class="container col-md-10 col-md-offset-1">
+    <div class="col-md-4">
+        <div class="row">
+            @userpanel(numberOfTweetciks)
+        </div>
+        <div class="row">
+            @newtweetcikpanel()
+        </div>
+    </div>
+    <div class="col-md-8">
+        @tweetciklist(username, tweetcikList)
+    </div>
+</div>
+}
