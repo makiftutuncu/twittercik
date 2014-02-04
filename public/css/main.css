@@ -67,6 +67,7 @@ body
 {
     font-style: italic;
     float: right;
+    color: #AAAAAA;
 }
 
 .tweetcik-row
@@ -81,6 +82,12 @@ body
 }
 
 .tweetcik-remove
+{
+    display: inline;
+    float: right;
+}
+
+.tweetcik-remove-icon
 {
     color: #3c763d;
 }
