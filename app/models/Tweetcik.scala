@@ -20,7 +20,7 @@ object Tweetcik
     }
   }
 
-  def getAllTweetciks(): List[Tweetcik] = {
+  def getAllTweetciks: List[Tweetcik] = {
     Logger.debug("Tweetcik.getAllTweetciks() - Getting all twettciks...")
     DB.withConnection { implicit c =>
       SQL("select * from tweetciks").as(tweetcik *)
@@ -28,16 +28,31 @@ object Tweetcik
   }
 
   def getTweetciksByUsername(username: String): List[Tweetcik] = {
-    Logger.debug(s"Tweetcik.getTweetciksByUsername() - Getting twettciks of user named ${username}...")
-    DB.withConnection { implicit c =>
-      SQL("select * from tweetciks where username={username}").on('username -> username).as(tweetcik *)
+    User.getByUsername(username) match {
+      case Some(user: User) =>
+        Logger.debug(s"Tweetcik.getTweetciksByUsername() - Getting twettciks of user named $username...")
+        DB.withConnection { implicit c =>
+          SQL("select * from tweetciks where username={username}").on('username -> username).as(tweetcik *)
+        }
+
+      case _ =>
+        Logger.error(s"Tweetcik.getTweetciksByUsername() - Cannot get tweetciks of a user that doesn't exist with name $username!")
+        throw new IllegalArgumentException()
     }
   }
 
   def create(username: String, content: String, date: Long) = {
-    DB.withConnection { implicit c =>
-      SQL("insert into tweetciks (username, content, tweetcikdate) values ({username}, {content}, {date})").on(
-        'username -> username, 'content -> content, 'date -> date).executeUpdate()
+    User.getByUsername(username) match {
+      case Some(user: User) =>
+        DB.withConnection {
+          implicit c =>
+            SQL("insert into tweetciks (username, content, tweetcikdate) values ({username}, {content}, {date})").on(
+              'username -> username, 'content -> content, 'date -> date).executeUpdate()
+        }
+
+      case _ =>
+        Logger.error(s"Tweetcik.create() - Cannot create a tweetcik for user that doesn't exist with name $username!")
+        throw new IllegalArgumentException()
     }
   }
 

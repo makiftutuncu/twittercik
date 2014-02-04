@@ -24,23 +24,30 @@ object Session
 
       if(sessions.length == 1)
       {
-        Logger.debug(s"Session.getByCookieId() - Session with cookieid ${cookieid} is found, returning it...")
+        Logger.debug(s"Session.getByCookieId() - Session with cookieid $cookieid is found, returning it...")
         sessions.headOption
       }
       else
       {
-        Logger.info(s"Session.getByCookieId() - Session with cookieid ${cookieid} is not found!")
+        Logger.info(s"Session.getByCookieId() - Session with cookieid $cookieid is not found!")
         None
       }
     }
   }
 
   def create(username: String): String = {
-    val cookieid: String = SHA512Generator.generate(username + System.currentTimeMillis())
-    DB.withConnection { implicit c =>
-      SQL("insert into sessions (cookieid, username) values ({cookieid}, {username})").on('cookieid -> cookieid, 'username -> username).executeUpdate()
+    User.getByUsername(username) match {
+      case Some(user: User) =>
+        val cookieid: String = SHA512Generator.generate(username + System.currentTimeMillis())
+        DB.withConnection { implicit c =>
+          SQL("insert into sessions (cookieid, username) values ({cookieid}, {username})").on('cookieid -> cookieid, 'username -> username).executeUpdate()
+        }
+        cookieid
+
+      case _ =>
+        Logger.error(s"Session.create() - Cannot create a session for user that doesn't exist with name $username!")
+        throw new IllegalArgumentException()
     }
-    cookieid
   }
 
   def delete(cookieid: String) = {

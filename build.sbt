@@ -8,7 +8,8 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  "mysql" % "mysql-connector-java" % "5.1.27"
+  "mysql" % "mysql-connector-java" % "5.1.27",
+  "org.specs2" %% "specs2" % "2.3.7" % "test"
 )     
 
 play.Project.playScalaSettings
