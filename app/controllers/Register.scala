@@ -38,17 +38,28 @@ object Register extends Controller {
       },
       registerFormUser => {
         Logger.debug(s"Register.submitRegisterForm() - Register form was valid for ${registerFormUser}.")
-        User.getByUsername(registerFormUser.username) match {
+        User.read(registerFormUser.username) match {
           case Some(u: User) => {
             Logger.info(s"Register.submitRegisterForm() - Username ${u.username} is already registered!")
             BadRequest(views.html.pages.register("username_exists"))
           }
           case None => {
             Logger.debug(s"Register.submitRegisterForm() - Registering ${registerFormUser.username}...")
-            User.create(registerFormUser.username, registerFormUser.hashedpassword)
-            Logger.debug(s"Register.submitRegisterForm() - Creating a new session for user named ${registerFormUser.username}...")
-            val cookieid = Session.create(registerFormUser.username)
-            Redirect(routes.Timeline.renderPage()).withCookies(Cookie(name = "logged_user", value = cookieid, maxAge = Option(60 * 60 * 24 * 15)))
+            if(User.create(registerFormUser.username, registerFormUser.hashedpassword))
+            {
+              Logger.debug(s"Register.submitRegisterForm() - Creating a new session for user named ${registerFormUser.username}...")
+              Session.create(registerFormUser.username) match {
+                case Some(cookieid: String) =>
+                  Redirect(routes.Timeline.renderPage()).withCookies(Cookie(name = "logged_user", value = cookieid, maxAge = Option(60 * 60 * 24 * 15)))
+
+                case _ => Redirect(routes.Application.index())
+              }
+            }
+            else
+            {
+              Logger.error(s"Register.submitRegisterForm() - Cannot create a user named ${registerFormUser.username}...")
+              Redirect(routes.Application.index())
+            }
           }
         }
       }

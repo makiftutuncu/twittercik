@@ -40,16 +40,19 @@ object Login extends Controller {
       },
       loginFormUser => {
         Logger.debug(s"Login.submitLoginForm() - Login form was valid for ${loginFormUser}.")
-        User.getByUsername(loginFormUser.username) match {
+        User.read(loginFormUser.username) match {
           case Some(u: User) => {
             val saltedPassword = loginFormUser.hashedpassword + u.salt
             val calculatedPassword = SHA512Generator.generate(saltedPassword)
             if(calculatedPassword == u.password) {
               Logger.debug(s"Login.submitLoginForm() - Username and password matches for ${loginFormUser.username}.")
-              val cookieid = Session.create(loginFormUser.username)
-              loginFormUser.keeploggedin match {
-                case Some(keeploggedin: String) => Redirect(routes.Timeline.renderPage()).withCookies(Cookie(name = "logged_user", value = cookieid, maxAge = Option(60 * 60 * 24 * 15)))
-                case _ => Redirect(routes.Timeline.renderPage()).withSession("logged_user" -> cookieid)
+              Session.create(loginFormUser.username) match {
+                case Some(cookieid: String) =>
+                  loginFormUser.keeploggedin match {
+                    case Some(keeploggedin: String) => Redirect(routes.Timeline.renderPage()).withCookies(Cookie(name = "logged_user", value = cookieid, maxAge = Option(60 * 60 * 24 * 15)))
+                    case _ => Redirect(routes.Timeline.renderPage()).withSession("logged_user" -> cookieid)
+                  }
+                case _ => Redirect(routes.Application.index())
               }
             }
             else

@@ -11,7 +11,7 @@ object Application extends Controller {
     request.cookies.get("logged_user") match {
       case Some(cookie: Cookie) =>
         Logger.debug(s"Application.authorize() - Cookie found with cookieid ${cookie.value}")
-        Session.getByCookieId(cookie.value) match {
+        Session.read(cookie.value) match {
           case optionSession @ Some(s: Session) => {
             Logger.debug(s"Application.authorize() - Authorization successful as user named ${s.username}.")
             optionSession
@@ -27,7 +27,7 @@ object Application extends Controller {
         request.session.get("logged_user") match {
           case Some(cookieid: String) =>
             Logger.debug(s"Application.authorize() - Session cookie found with cookieid ${cookieid}")
-            Session.getByCookieId(cookieid) match {
+            Session.read(cookieid) match {
               case optionSession @ Some(s: Session) => {
                 Logger.debug(s"Application.authorize() - Authorization successful as user named ${s.username}.")
                 optionSession

@@ -16,7 +16,7 @@ POST    /register                   controllers.Register.submitRegisterForm
 # Timeline page
 GET     /timeline                   controllers.Timeline.renderPage
 POST    /submitTweetcik             controllers.Timeline.submitTweetcik
-POST    /removeTweetcik/:id         controllers.Timeline.removeTweetcik(id: Long)
+POST    /deleteTweetcik/:id         controllers.Timeline.deleteTweetcik(id: Long)
 POST    /logout                     controllers.Logout.logout
 
 # Map static resources from the /public folder to the /assets URL path

@@ -81,13 +81,13 @@ body
     padding-top: 5px;
 }
 
-.tweetcik-remove
+.tweetcik-delete
 {
     display: inline;
     float: right;
 }
 
-.tweetcik-remove-icon
+.tweetcik-delete-icon
 {
     color: #3c763d;
 }

@@ -3,8 +3,8 @@
     <div class="row tweetcik-row">
         <span class="tweetcik-user">@@@username</span>
         @if(id != -1) {
-            <form action='@routes.Timeline.removeTweetcik(id)' method="post" class="tweetcik-remove">
-                <a class="glyphicon glyphicon-remove tweetcik-remove-icon" onclick="$(this).closest('form').submit();"></a>
+            <form action='@routes.Timeline.deleteTweetcik(id)' method="post" class="tweetcik-delete">
+                <a class="glyphicon glyphicon-remove tweetcik-delete-icon" onclick="$(this).closest('form').submit();"></a>
             </form>
         }
     </div>

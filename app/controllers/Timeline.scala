@@ -20,11 +20,11 @@ object Timeline extends Controller {
   def renderPage = Action {
     implicit request => Application.isAuthorized(request) match {
       case Some(session: Session) =>
-        User.getByUsername(session.username) match {
+        User.read(session.username) match {
           case Some(user: User) =>
             Logger.debug(s"Timeline.renderPage() - User named ${user.username} is logged in.")
-            val numberOfTweetciks = Tweetcik.getTweetciksByUsername(user.username).size
-            Ok(views.html.pages.timeline(user.username, numberOfTweetciks, Tweetcik.getAllTweetciks()))
+            val numberOfTweetciks = Tweetcik.read(user.username).size
+            Ok(views.html.pages.timeline(user.username, numberOfTweetciks, Tweetcik.readAll))
 
           case _ =>
             Logger.debug("Timeline.renderPage() - Redirecting to welcome with a new session...")
@@ -47,7 +47,8 @@ object Timeline extends Controller {
         Application.isAuthorized(request) match {
           case Some(session: Session) => {
             Logger.debug(s"Timeline.submitTweetcik() - Posting a new tweetcik as ${tweetcikContent.content} as user with id ${session.username}...")
-            Tweetcik.create(session.username, tweetcikContent.content, System.currentTimeMillis())
+            if(!Tweetcik.create(session.username, tweetcikContent.content, System.currentTimeMillis()))
+              Logger.info(s"Timeline.submitTweetcik() - Posting a new tweetcik failed!")
             Redirect(routes.Timeline.renderPage())
           }
           case None =>
@@ -58,22 +59,22 @@ object Timeline extends Controller {
     )
   }
 
-  def removeTweetcik(id: Long) = Action {
+  def deleteTweetcik(id: Long) = Action {
     implicit request => Application.isAuthorized(request) match {
       case Some(session: Session) =>
-        User.getByUsername(session.username) match {
+        User.read(session.username) match {
           case Some(user: User) =>
-            Logger.debug(s"Timeline.removeTweetcik() - Removing tweetcik with id ${id}...")
-            Tweetcik.remove(id)
+            Logger.debug(s"Timeline.deleteTweetcik() - Deleting tweetcik with id ${id}...")
+            Tweetcik.delete(id)
             Redirect(routes.Timeline.renderPage())
 
           case _ =>
-            Logger.debug("Timeline.removeTweetcik() - Redirecting to welcome with a new session...")
+            Logger.debug("Timeline.deleteTweetcik() - Redirecting to welcome with a new session...")
             Redirect(routes.Application.index()).withNewSession
         }
 
       case None =>
-        Logger.debug("Timeline.removeTweetcik() - Redirecting to welcome with a new session...")
+        Logger.debug("Timeline.deleteTweetcik() - Redirecting to welcome with a new session...")
         Redirect(routes.Application.index()).withNewSession
     }
   }

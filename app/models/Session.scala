@@ -18,41 +18,39 @@ object Session
     }
   }
 
-  def getByCookieId(cookieid: String): Option[Session] = {
-    DB.withConnection { implicit c =>
-      val sessions: List[Session] = SQL("select * from sessions where cookieid={cookieid} limit 1").on('cookieid -> cookieid).as(session *)
-
-      if(sessions.length == 1)
-      {
-        Logger.debug(s"Session.getByCookieId() - Session with cookieid $cookieid is found, returning it...")
-        sessions.headOption
-      }
-      else
-      {
-        Logger.info(s"Session.getByCookieId() - Session with cookieid $cookieid is not found!")
-        None
-      }
-    }
-  }
-
-  def create(username: String): String = {
-    User.getByUsername(username) match {
+  def create(username: String): Option[String] = {
+    User.read(username) match {
       case Some(user: User) =>
         val cookieid: String = SHA512Generator.generate(username + System.currentTimeMillis())
         DB.withConnection { implicit c =>
-          SQL("insert into sessions (cookieid, username) values ({cookieid}, {username})").on('cookieid -> cookieid, 'username -> username).executeUpdate()
+          SQL("insert into sessions (cookieid, username) values ({cookieid}, {username})")
+            .on('cookieid -> cookieid, 'username -> username).executeUpdate()
         }
-        cookieid
-
+        Option(cookieid)
       case _ =>
-        Logger.error(s"Session.create() - Cannot create a session for user that doesn't exist with name $username!")
-        throw new IllegalArgumentException()
+        Logger.info(s"Session.create() - Cannot create a session for user that doesn't exist with name $username!")
+        None
     }
   }
 
-  def delete(cookieid: String) = {
+  def read(cookieid: String): Option[Session] = {
     DB.withConnection { implicit c =>
-      SQL("delete from sessions where cookieid = {cookieid}").on('cookieid -> cookieid).executeUpdate()
+      val sessions: List[Session] = SQL("select * from sessions where cookieid={cookieid} limit 1")
+        .on('cookieid -> cookieid).as(session *)
+
+      val result = sessions.headOption
+      result match {
+        case Some(_) => Logger.debug(s"Session.read() - Session with cookieid $cookieid is found, returning it...")
+        case _ => Logger.info(s"Session.read() - Session with cookieid $cookieid is not found!")
+      }
+      result
+    }
+  }
+
+  def delete(cookieid: String): Boolean = {
+    DB.withConnection { implicit c =>
+      val result = SQL("delete from sessions where cookieid = {cookieid}").on('cookieid -> cookieid).executeUpdate()
+      (result > 0)
     }
   }
 }
