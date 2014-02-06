@@ -11,23 +11,23 @@ class UserSpec extends Specification
 
   "User" should {
 
-    "create for test user" in new WithApplication {
+    "create a test user" in new WithApplication {
       User.create(testUserName, testUserPassword) mustEqual true
     }
 
-    s"read for user named $testUserName" in new WithApplication {
-      User.read(testUserName) must not beNone
+    s"read user named $testUserName" in new WithApplication {
+      (User.read(testUserName) must not).beNone
     }
 
-    s"delete for user named $testUserName" in new WithApplication {
+    s"delete user named $testUserName" in new WithApplication {
       User.delete(testUserName) mustEqual true
     }
 
-    s"not be able to read for user named $userThatDoesntExist" in new WithApplication {
+    s"not be able to read user named $userThatDoesntExist" in new WithApplication {
       User.read(userThatDoesntExist) must beNone
     }
 
-    s"not be able to delete for user named $userThatDoesntExist" in new WithApplication {
+    s"not be able to delete user named $userThatDoesntExist" in new WithApplication {
       User.delete(userThatDoesntExist) mustEqual false
     }
   }

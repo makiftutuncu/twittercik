@@ -9,8 +9,8 @@ import play.api.Logger
 
 case class TweetcikContent(content: String)
 
-object Timeline extends Controller {
-
+object Timeline extends Controller
+{
   val tweetcikForm: Form[TweetcikContent] = Form(
     mapping(
       "tweetcik" -> text(1, 140)
@@ -25,12 +25,10 @@ object Timeline extends Controller {
             Logger.debug(s"Timeline.renderPage() - User named ${user.username} is logged in.")
             val numberOfTweetciks = Tweetcik.read(user.username).size
             Ok(views.html.pages.timeline(user.username, numberOfTweetciks, Tweetcik.readAll))
-
           case _ =>
             Logger.debug("Timeline.renderPage() - Redirecting to welcome with a new session...")
             Redirect(routes.Application.index()).withNewSession
         }
-
       case None =>
         Logger.debug("Timeline.renderPage() - Redirecting to welcome with a new session...")
         Redirect(routes.Application.index()).withNewSession
@@ -45,12 +43,11 @@ object Timeline extends Controller {
       },
       tweetcikContent => {
         Application.isAuthorized(request) match {
-          case Some(session: Session) => {
+          case Some(session: Session) =>
             Logger.debug(s"Timeline.submitTweetcik() - Posting a new tweetcik as ${tweetcikContent.content} as user with id ${session.username}...")
             if(!Tweetcik.create(session.username, tweetcikContent.content, System.currentTimeMillis()))
               Logger.info(s"Timeline.submitTweetcik() - Posting a new tweetcik failed!")
             Redirect(routes.Timeline.renderPage())
-          }
           case None =>
             Logger.info(s"Timeline.submitTweetcik() - Not logged in! Redirecting to index with new session...")
             Redirect(routes.Application.index()).withNewSession
@@ -64,15 +61,13 @@ object Timeline extends Controller {
       case Some(session: Session) =>
         User.read(session.username) match {
           case Some(user: User) =>
-            Logger.debug(s"Timeline.deleteTweetcik() - Deleting tweetcik with id ${id}...")
+            Logger.debug(s"Timeline.deleteTweetcik() - Deleting tweetcik with id $id...")
             Tweetcik.delete(id)
             Redirect(routes.Timeline.renderPage())
-
           case _ =>
             Logger.debug("Timeline.deleteTweetcik() - Redirecting to welcome with a new session...")
             Redirect(routes.Application.index()).withNewSession
         }
-
       case None =>
         Logger.debug("Timeline.deleteTweetcik() - Redirecting to welcome with a new session...")
         Redirect(routes.Application.index()).withNewSession

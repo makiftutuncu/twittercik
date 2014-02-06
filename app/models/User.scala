@@ -18,34 +18,51 @@ object User
   }
 
   def create(username: String, password: String): Boolean = {
-    DB.withConnection { implicit c =>
-      val salt = SHA512Generator.generate(username + System.currentTimeMillis())
-      val saltedPassword = SHA512Generator.generate(password + salt)
-      val result = SQL("insert into users (username, password, salt) values ({username}, {password}, {salt})")
-        .on('username -> username, 'password -> saltedPassword, 'salt -> salt)
-        .executeUpdate()
-      (result > 0)
+    try {
+      DB.withConnection { implicit c =>
+        val salt = SHA512Generator.generate(username + System.currentTimeMillis())
+        val saltedPassword = SHA512Generator.generate(password + salt)
+        val result = SQL("insert into users (username, password, salt) values ({username}, {password}, {salt})")
+          .on('username -> username, 'password -> saltedPassword, 'salt -> salt)
+          .executeUpdate()
+        result > 0
+      }
+    }
+    catch {
+      case e: Exception =>
+        Logger.error(s"User.create() - ${e.getMessage}")
+        false
     }
   }
 
   def read(username: String): Option[User] = {
-    DB.withConnection { implicit c =>
-      val users: List[User] = SQL("select * from users where username={username} limit 1")
-        .on('username -> username).as(user *)
+    try {
+      DB.withConnection { implicit c =>
+        val users: List[User] = SQL("select * from users where username={username} limit 1")
+          .on('username -> username).as(user *)
 
-      val result = users.headOption
-      result match {
-        case Some(_) => Logger.debug(s"User.read() - User named ${username} is found, returning it...")
-        case _ => Logger.info(s"User.read() - User named ${username} is not found!")
+        users.headOption
       }
-      result
+    }
+    catch {
+      case e: Exception =>
+        Logger.error(s"User.read() - ${e.getMessage}")
+        None
     }
   }
 
   def delete(username: String): Boolean = {
-    DB.withConnection { implicit c =>
-      val result = SQL("delete from users where username = {username}").on('username -> username).executeUpdate()
-      (result > 0)
+    try {
+      DB.withConnection { implicit c =>
+        val result = SQL("delete from users where username = {username}")
+          .on('username -> username).executeUpdate()
+        result > 0
+      }
+    }
+    catch {
+      case e: Exception =>
+        Logger.error(s"User.delete() - ${e.getMessage}")
+        false
     }
   }
 }
