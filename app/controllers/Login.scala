@@ -43,13 +43,13 @@ object Login extends Controller
             if(calculatedPassword == u.password) {
               Logger.debug(s"Login.submitLoginForm() - Username and password matches for ${loginFormUser.username}.")
               Session.create(loginFormUser.username) match {
-                case Some(cookieid: String) =>
+                case Some(session: Session) =>
                   loginFormUser.keeploggedin match {
                     case Some(keeploggedin: String) =>
                       Redirect(routes.Timeline.renderPage())
-                        .withCookies(Cookie(name = "logged_user", value = cookieid, maxAge = Option(60 * 60 * 24 * 15)))
+                        .withCookies(Cookie(name = "logged_user", value = session.cookieid, maxAge = Option(60 * 60 * 24 * 15)))
                     case _ =>
-                      Redirect(routes.Timeline.renderPage()).withSession("logged_user" -> cookieid)
+                      Redirect(routes.Timeline.renderPage()).withSession("logged_user" -> session.cookieid)
                   }
                 case _ =>
                   Redirect(routes.Application.index())

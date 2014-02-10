@@ -20,44 +20,60 @@ object Tweetcik
     }
   }
 
-  def create(username: String, content: String, date: Long): Boolean = {
-    User.read(username) match {
-      case Some(user: User) =>
-        DB.withConnection { implicit c =>
-          try {
-            val result = SQL("insert into tweetciks (username, content, tweetcikdate) values ({username}, {content}, {date})")
-              .on('username -> username, 'content -> content, 'date -> date)
-              .executeUpdate()
-            result > 0
-          }
-          catch {
-            case e: Exception =>
-              Logger.error(s"Tweetcik.create() - ${e.getMessage}")
-              false
-          }
+  def create(username: String, content: String, date: Long): Option[Tweetcik] = {
+    try {
+      DB.withConnection { implicit c =>
+        SQL("select * from users where username={username} limit 1")
+          .on('username -> username).as(User.user *) match {
+          case users: List[User] =>
+            if(users.isEmpty) {
+              Logger.error(s"Tweetcik.create() - Cannot create a tweetcik for user that doesn't exist with name $username!")
+              None
+            }
+            else {
+              SQL("insert into tweetciks (username, content, tweetcikdate) values ({username}, {content}, {tweetcikdate})")
+                .on('username -> username, 'content -> content, 'tweetcikdate -> date)
+                .executeUpdate()
+              val result = SQL("select * from tweetciks where username={username} and tweetcikdate={tweetcikdate} limit 1")
+                .on('username -> username, 'tweetcikdate -> date).as(tweetcik *)
+              result.headOption
+            }
+          case _ =>
+            Logger.error(s"Tweetcik.create() - Cannot create a tweetcik for user that doesn't exist with name $username!")
+            None
         }
-      case _ =>
-        Logger.info(s"Tweetcik.create() - Cannot create a tweetcik for user that doesn't exist with name $username!")
-        false
+      }
+    }
+    catch {
+      case e: Exception =>
+        Logger.error(s"Tweetcik.create() - ${e.getMessage}")
+        None
     }
   }
 
   def read(username: String): List[Tweetcik] = {
-    User.read(username) match {
-      case Some(user: User) =>
-        try {
-          DB.withConnection { implicit c =>
-            SQL("select * from tweetciks where username={username}")
-              .on('username -> username).as(tweetcik *)
-          }
-        }
-        catch {
-          case e: Exception =>
-            Logger.error(s"Tweetcik.read() - ${e.getMessage}")
+    try {
+      DB.withConnection { implicit c =>
+        SQL("select * from users where username={username} limit 1")
+          .on('username -> username).as(User.user *) match {
+          case users: List[User] =>
+            if(users.isEmpty) {
+              Logger.error(s"Tweetcik.read() - Cannot read tweetciks of a user that doesn't exist with name $username!")
+              Nil
+            }
+            else {
+              SQL("select * from tweetciks where username={username}")
+                .on('username -> username).as(tweetcik *)
+            }
+          case _ =>
+            Logger.error(s"Tweetcik.read() - Cannot read tweetciks of a user that doesn't exist with name $username!")
             Nil
         }
-      case _ =>
-        Logger.info(s"Tweetcik.read() - Cannot read tweetciks of a user that doesn't exist with name $username!")
+      }
+    }
+    catch {
+      case e: Exception =>
+        Logger.error(s"Tweetcik.read() - ${e.getMessage}")
         Nil
     }
   }

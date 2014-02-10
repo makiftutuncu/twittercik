@@ -45,8 +45,11 @@ object Timeline extends Controller
         Application.isAuthorized(request) match {
           case Some(session: Session) =>
             Logger.debug(s"Timeline.submitTweetcik() - Posting a new tweetcik as ${tweetcikContent.content} as user with id ${session.username}...")
-            if(!Tweetcik.create(session.username, tweetcikContent.content, System.currentTimeMillis()))
-              Logger.info(s"Timeline.submitTweetcik() - Posting a new tweetcik failed!")
+            Tweetcik.create(session.username, tweetcikContent.content, System.currentTimeMillis()) match {
+              case Some(_) =>
+              case None =>
+                Logger.info(s"Timeline.submitTweetcik() - Posting a new tweetcik failed!")
+            }
             Redirect(routes.Timeline.renderPage())
           case None =>
             Logger.info(s"Timeline.submitTweetcik() - Not logged in! Redirecting to index with new session...")

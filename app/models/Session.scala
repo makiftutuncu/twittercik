@@ -18,24 +18,33 @@ object Session
     }
   }
 
-  def create(username: String): Option[String] = {
-    User.read(username) match {
-      case Some(user: User) =>
-        try {
-          val cookieid: String = SHA512Generator.generate(username + System.currentTimeMillis())
-          DB.withConnection { implicit c =>
-            SQL("insert into sessions (cookieid, username) values ({cookieid}, {username})")
-              .on('cookieid -> cookieid, 'username -> username).executeUpdate()
-          }
-          Option(cookieid)
-        }
-        catch {
-          case e: Exception =>
-            Logger.error(s"Session.create() - ${e.getMessage}")
+  def create(username: String): Option[Session] = {
+    try {
+      DB.withConnection { implicit c =>
+        SQL("select * from users where username={username} limit 1")
+          .on('username -> username).as(User.user *) match {
+          case users: List[User] =>
+            if(users.isEmpty) {
+              Logger.error(s"Session.create() - Cannot create a session for user that doesn't exist with name $username!")
+              None
+            }
+            else {
+              val cookieid: String = SHA512Generator.generate(username + System.currentTimeMillis())
+              SQL("insert into sessions (cookieid, username) values ({cookieid}, {username})")
+                .on('cookieid -> cookieid, 'username -> username).executeUpdate()
+              val sessions: List[Session] = SQL("select * from sessions where cookieid={cookieid} limit 1")
+                .on('cookieid -> cookieid).as(session *)
+              sessions.headOption
+            }
+          case _ =>
+            Logger.error(s"Session.create() - Cannot create a session for user that doesn't exist with name $username!")
             None
         }
-      case _ =>
-        Logger.info(s"Session.create() - Cannot create a session for user that doesn't exist with name $username!")
+      }
+    }
+    catch {
+      case e: Exception =>
+        Logger.error(s"Session.create() - ${e.getMessage}")
         None
     }
   }

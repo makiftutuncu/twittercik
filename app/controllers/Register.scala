@@ -40,19 +40,19 @@ object Register extends Controller
             BadRequest(views.html.pages.register("username_exists"))
           case None =>
             Logger.debug(s"Register.submitRegisterForm() - Registering ${registerFormUser.username}...")
-            if(User.create(registerFormUser.username, registerFormUser.hashedpassword)) {
-              Logger.debug(s"Register.submitRegisterForm() - Creating a new session for user named ${registerFormUser.username}...")
-              Session.create(registerFormUser.username) match {
-                case Some(cookieid: String) =>
-                  Redirect(routes.Timeline.renderPage())
-                    .withCookies(Cookie(name = "logged_user", value = cookieid, maxAge = Option(60 * 60 * 24 * 15)))
-                case _ =>
-                  Redirect(routes.Application.index())
-              }
-            }
-            else {
-              Logger.error(s"Register.submitRegisterForm() - Cannot create a user named ${registerFormUser.username}...")
-              Redirect(routes.Application.index())
+            User.create(registerFormUser.username, registerFormUser.hashedpassword) match {
+              case Some(user: User) =>
+                Logger.debug(s"Register.submitRegisterForm() - Creating a new session for user named ${user.username}...")
+                Session.create(user.username) match {
+                  case Some(session: Session) =>
+                    Redirect(routes.Timeline.renderPage())
+                      .withCookies(Cookie(name = "logged_user", value = session.cookieid, maxAge = Option(60 * 60 * 24 * 15)))
+                  case _ =>
+                    Redirect(routes.Application.index())
+                }
+              case _ =>
+                Logger.error(s"Register.submitRegisterForm() - Cannot create a user named ${registerFormUser.username}...")
+                Redirect(routes.Application.index())
             }
         }
       }

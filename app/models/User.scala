@@ -17,21 +17,23 @@ object User
     }
   }
 
-  def create(username: String, password: String): Boolean = {
+  def create(username: String, password: String): Option[User] = {
     try {
       DB.withConnection { implicit c =>
         val salt = SHA512Generator.generate(username + System.currentTimeMillis())
         val saltedPassword = SHA512Generator.generate(password + salt)
-        val result = SQL("insert into users (username, password, salt) values ({username}, {password}, {salt})")
+        SQL("insert into users (username, password, salt) values ({username}, {password}, {salt})")
+          .on('username -> username, 'password -> saltedPassword, 'salt -> salt).executeUpdate()
+        val result = SQL("select * from users where username={username} limit 1")
           .on('username -> username, 'password -> saltedPassword, 'salt -> salt)
-          .executeUpdate()
-        result > 0
+          .as(user *)
+        result.headOption
       }
     }
     catch {
       case e: Exception =>
         Logger.error(s"User.create() - ${e.getMessage}")
-        false
+        None
     }
   }
 
@@ -54,9 +56,11 @@ object User
   def delete(username: String): Boolean = {
     try {
       DB.withConnection { implicit c =>
-        val result = SQL("delete from users where username = {username}")
-          .on('username -> username).executeUpdate()
-        result > 0
+        if(SQL("delete from users where username = {username}").on('username -> username).executeUpdate() > 0) {
+          val result = SQL("select * from users where username={username} limit 1").on('username -> username).as(user *)
+          result.isEmpty
+        }
+        else false
       }
     }
     catch {

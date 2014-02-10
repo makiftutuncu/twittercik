@@ -11,7 +11,7 @@ class ApplicationSpec extends Specification
     }
 
     "render the index page without a session" in new WithApplication {
-      val index = route(FakeRequest(GET, "/")).get
+      val index = controllers.Application.index()(FakeRequest())
 
       status(index) must equalTo(OK)
       contentType(index) must beSome.which(_ == "text/html")
