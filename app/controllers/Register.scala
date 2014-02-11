@@ -6,8 +6,14 @@ import play.api.data.Forms._
 import models.{Session, User}
 import play.api.Logger
 
+/**
+ * Register controller which controls everything about registering a new user to the system
+ */
 object Register extends Controller
 {
+  /**
+   * A form matcher for the user register form, maps the form data to a RegisterFormUser object
+   */
   val registerForm: Form[RegisterFormUser] = Form(
     mapping(
       "username" -> text(3, 24),
@@ -15,6 +21,10 @@ object Register extends Controller
     )(RegisterFormUser.apply)(RegisterFormUser.unapply)
   )
 
+  /**
+   * Entry point of the register page, takes user to timeline if authorized,
+   * shows register page otherwise.
+   */
   def renderPage = Action {
     implicit request => Application.isAuthorized(request) match {
       case Some(session: Session) =>
@@ -26,6 +36,10 @@ object Register extends Controller
     }
   }
 
+  /**
+   * Action that validates register data and performs register operation,
+   * takes user to welcome page if not authorized
+   */
   def submitRegisterForm = Action {
     implicit request => registerForm.bindFromRequest.fold(
       errors => {
@@ -60,4 +74,10 @@ object Register extends Controller
   }
 }
 
+/**
+ * A model of the register form
+ *
+ * @param username        Name of the user
+ * @param hashedpassword  Hashed value of the password user entered
+ */
 case class RegisterFormUser(username: String, hashedpassword: String)

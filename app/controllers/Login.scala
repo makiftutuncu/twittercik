@@ -7,8 +7,14 @@ import models.{User, Session}
 import play.api.Logger
 import helpers.SHA512Generator
 
+/**
+ * Login controller which controls everything about logging a user into the system
+ */
 object Login extends Controller
 {
+  /**
+   * A form matcher for the user log in form, maps the form data to a LoginFormUser object
+   */
   val loginForm: Form[LoginFormUser] = Form(
     mapping(
       "username" -> text(3, 24),
@@ -17,6 +23,10 @@ object Login extends Controller
     )(LoginFormUser.apply)(LoginFormUser.unapply)
   )
 
+  /**
+   * Entry point of the login page, takes user to timeline if authorized,
+   * shows login page otherwise.
+   */
   def renderPage = Action {
     implicit request => Application.isAuthorized(request) match {
       case Some(session: Session) =>
@@ -28,6 +38,10 @@ object Login extends Controller
     }
   }
 
+  /**
+   * Action that validates login data and performs login operation,
+   * takes user to welcome page if not authorized
+   */
   def submitLoginForm = Action {
     implicit request => loginForm.bindFromRequest.fold(
       errors => {
@@ -68,4 +82,12 @@ object Login extends Controller
   }
 }
 
+/**
+ * A model of the login form
+ *
+ * @param username        Name of the user
+ * @param hashedpassword  Hashed value of the password user entered
+ * @param keeploggedin    Flag to keep user logged in between sessions
+ *                        (Value will be "on" if user checked "keep logged in" option)
+ */
 case class LoginFormUser(username: String, hashedpassword: String, keeploggedin: Option[String])

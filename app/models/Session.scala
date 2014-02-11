@@ -8,16 +8,35 @@ import play.api.Play.current
 import play.api.Logger
 import helpers.SHA512Generator
 
+/**
+ * A model for keeping a user session
+ *
+ * @param cookieid  A generated id kept in cookie identifying the user
+ * @param username  Name of the user whose session is identified by cookieid
+ */
 case class Session(cookieid: String, username: String)
 
+/**
+ * Companion object of Session acting as data access layer
+ */
 object Session
 {
+  /**
+   * A result set parser for session records in database, maps records to a Session object
+   */
   val session = {
     get[String]("cookieid") ~ get[String]("username") map {
       case cookieid ~ username => Session(cookieid, username)
     }
   }
 
+  /**
+   * Creates a session for given user in the database
+   *
+   * @param username  Name of the user
+   *
+   * @return  An optional Session if successful
+   */
   def create(username: String): Option[Session] = {
     try {
       DB.withConnection { implicit c =>
@@ -49,6 +68,13 @@ object Session
     }
   }
 
+  /**
+   * Reads a session with given cookie id from the database
+   *
+   * @param cookieid  Cookie id of the session
+   *
+   * @return  An optional Session if successful
+   */
   def read(cookieid: String): Option[Session] = {
     try {
       DB.withConnection { implicit c =>
@@ -64,6 +90,13 @@ object Session
     }
   }
 
+  /**
+   * Deletes a session with given cookie id from the database
+   *
+   * @param cookieid  Cookie id of the session
+   *
+   * @return  true if successful, false otherwise
+   */
   def delete(cookieid: String): Boolean = {
     try {
       DB.withConnection { implicit c =>

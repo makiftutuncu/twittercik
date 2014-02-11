@@ -4,8 +4,20 @@ import play.api.mvc._
 import models.Session
 import play.api.Logger
 
+/**
+ * Main controller and the entry point of the application
+ */
 object Application extends Controller
 {
+  /**
+   * A general purpose authorization check for each request,
+   * it checks cookies for a cookie id matching a user.
+   *
+   * @param request Request of the action
+   * @tparam T      Type of the request
+   *
+   * @return  An optional session containing cookie id and username if authorization is successful
+   */
   def isAuthorized[T](request: Request[T]): Option[Session] = {
     // Look for cookie first
     request.cookies.get("logged_user") match {
@@ -33,12 +45,16 @@ object Application extends Controller
                 None
             }
           case None =>
-            Logger.debug("Application.authorize() - No session cookie found. Not logged in.")
+            Logger.debug("Application.authorize() - No credentials found. Not logged in.")
             None
         }
     }
   }
 
+  /**
+   * Entry point of the application, takes user to timeline if authorized,
+   * shows welcome page otherwise.
+   */
   def index = Action {
     implicit request => isAuthorized(request) match {
       case Some(session: Session) =>

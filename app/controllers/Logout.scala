@@ -4,8 +4,15 @@ import play.api.mvc._
 import models.Session
 import play.api.Logger
 
+/**
+ * Logout controller which controls everything about logging a user out of the system
+ */
 object Logout extends Controller
 {
+  /**
+   * Action that performs logout operation for the user defined by the session
+   * and takes user to welcome page
+   */
   def logout = Action {
     implicit request => Application.isAuthorized(request) match {
       case Some(session: Session) =>

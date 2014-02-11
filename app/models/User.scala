@@ -7,16 +7,37 @@ import play.api.Play.current
 import play.api.Logger
 import helpers.SHA512Generator
 
+/**
+ * A model for keeping a user
+ *
+ * @param username  Name of the user
+ * @param password  Salted and hashed value of password of the user
+ * @param salt      Salt to combine with the hashed value of the password user entered
+ */
 case class User(username: String, password: String, salt: String)
 
+/**
+ * Companion object of User acting as data access layer
+ */
 object User
 {
+  /**
+   * A result set parser for user records in database, maps records to a User object
+   */
   val user = {
     get[String]("username") ~ get[String]("password") ~ get[String]("salt") map {
       case username ~ password ~ salt => User(username, password, salt)
     }
   }
 
+  /**
+   * Creates a user for given information in the database
+   *
+   * @param username  Name of the user
+   * @param password  Hashed value of the password user entered
+   *
+   * @return  An optional User if successful
+   */
   def create(username: String, password: String): Option[User] = {
     try {
       DB.withConnection { implicit c =>
@@ -37,6 +58,13 @@ object User
     }
   }
 
+  /**
+   * Reads a user with given name from the database
+   *
+   * @param username  Name of the user
+   *
+   * @return  An optional User if successful
+   */
   def read(username: String): Option[User] = {
     try {
       DB.withConnection { implicit c =>
@@ -53,6 +81,13 @@ object User
     }
   }
 
+  /**
+   * Deletes a user with given name from the database
+   *
+   * @param username  Name of the user to delete
+   *
+   * @return  true if successful, false otherwise
+   */
   def delete(username: String): Boolean = {
     try {
       DB.withConnection { implicit c =>

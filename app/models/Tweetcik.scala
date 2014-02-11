@@ -7,19 +7,47 @@ import anorm.~
 import play.api.Play.current
 import play.api.Logger
 
+/**
+ * A model for keeping a tweetcik
+ *
+ * @param id        Auto incrementing id of tweetcik
+ * @param username  Name of the user that this tweetcik belongs to
+ * @param content   Content of the tweetcik
+ * @param date      Timestamp of the tweetcik
+ */
 case class Tweetcik(id: Long, username: String, content: String, date: Long)
 {
+  /**
+   * Gives a human readable representation of date of the tweetcik
+   *
+   * @return  A human readable representation of date of the tweetcik
+   */
   def dateString: String = new java.text.SimpleDateFormat("dd MMMM yyyy, HH:mm:ss").format(new java.util.Date(date))
 }
 
+/**
+ * Companion object of Tweetcik acting as data access layer
+ */
 object Tweetcik
 {
+  /**
+   * A result set parser for tweetcik records in database, maps records to a Tweetcik object
+   */
   val tweetcik = {
     get[Long]("id") ~ get[String]("username") ~ get[String]("content") ~ get[Long]("tweetcikdate") map {
       case id ~ username ~ content ~ date => Tweetcik(id, username, content, date)
     }
   }
 
+  /**
+   * Creates a tweetcik for given information in the database
+   *
+   * @param username  Name of the user that this tweetcik belongs to
+   * @param content   Content of the tweetcik
+   * @param date      Timestamp of the tweetcik
+   *
+   * @return  An optional Tweetcik if successful
+   */
   def create(username: String, content: String, date: Long): Option[Tweetcik] = {
     try {
       DB.withConnection { implicit c =>
@@ -51,6 +79,13 @@ object Tweetcik
     }
   }
 
+  /**
+   * Reads tweetciks of given user from the database
+   *
+   * @param username  Name of the user
+   *
+   * @return  A list of tweetciks belonging to the given user
+   */
   def read(username: String): List[Tweetcik] = {
     try {
       DB.withConnection { implicit c =>
@@ -78,6 +113,11 @@ object Tweetcik
     }
   }
 
+  /**
+   * Reads all tweetciks from the database
+   *
+   * @return  A list of all tweetciks
+   */
   def readAll: List[Tweetcik] = {
     try {
       DB.withConnection { implicit c =>
@@ -91,6 +131,13 @@ object Tweetcik
     }
   }
 
+  /**
+   * Deletes a tweetcik with given id from the database
+   *
+   * @param id  Id of the tweetcik to delete
+   *
+   * @return  true if successful, false otherwise
+   */
   def delete(id: Long): Boolean = {
     try {
       DB.withConnection { implicit c =>

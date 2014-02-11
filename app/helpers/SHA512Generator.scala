@@ -10,7 +10,7 @@ object SHA512Generator
    *
    * @param s A value whose hash will be generated
    *
-   * @return Generated hash value
+   * @return  Generated hash value
    */
   def generate(s: String): String = {
     val md = java.security.MessageDigest.getInstance("SHA-512")
