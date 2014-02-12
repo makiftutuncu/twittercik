@@ -28,7 +28,7 @@ object Login extends Controller
    * shows login page otherwise.
    */
   def renderPage = Action {
-    implicit request => Application.isAuthorized(request) match {
+    implicit request => Application.getSessionForRequest(request) match {
       case Some(session: Session) =>
         Logger.debug(s"Login.renderPage() - User named ${session.username} is already logged in. Redirecting to timeline...")
         Redirect(routes.Timeline.renderPage())

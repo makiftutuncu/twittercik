@@ -2,7 +2,7 @@ package controllers
 
 import play.api.mvc._
 import models.Session
-import play.api.Logger
+import play.api.{Play, Logger}
 
 /**
  * Main controller and the entry point of the application
@@ -18,7 +18,7 @@ object Application extends Controller
    *
    * @return  An optional session containing cookie id and username if authorization is successful
    */
-  def isAuthorized[T](request: Request[T]): Option[Session] = {
+  def getSessionForRequest[T](request: Request[T]): Option[Session] = {
     // Look for cookie first
     request.cookies.get("logged_user") match {
       case Some(cookie: Cookie) =>
@@ -56,7 +56,7 @@ object Application extends Controller
    * shows welcome page otherwise.
    */
   def index = Action {
-    implicit request => isAuthorized(request) match {
+    implicit request => getSessionForRequest(request) match {
       case Some(session: Session) =>
         println(s"Application.index() - User named ${session.username} is already logged in. Redirecting to timeline...")
         Redirect(routes.Timeline.renderPage())

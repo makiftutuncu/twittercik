@@ -1,6 +1,8 @@
+import anorm._
 import helpers.TestHelpers
 import org.specs2.mutable._
 import models.Tweetcik
+import play.api.db.DB
 import play.api.test.WithApplication
 
 /**
@@ -13,6 +15,17 @@ class TweetcikSpec extends Specification with TestHelpers
     "create a test tweetcik" in new WithApplication with RandomTweetcikDeleting {
       Tweetcik.create(testTweetcik.username, testTweetcik.content, testTweetcik.date) must beSome.which(t =>
         t.username == testTweetcik.username && t.content == testTweetcik.content && t.date == testTweetcik.date)
+
+      val maybeTweetcik = getInsertedTweetcik
+      maybeTweetcik must beSome[Tweetcik]
+      maybeTweetcik.get.content mustEqual testTweetcik.content
+
+      override def getInsertedTweetcik: Option[Tweetcik] = {
+        DB.withConnection { implicit c =>
+          SQL("select * from tweetciks where username={username} limit 1")
+            .on('username -> testTweetcik.username).as(Tweetcik.tweetcik *).headOption
+        }
+      }
     }
 
     "not be able to create user with random username" in new WithApplication {
@@ -38,7 +51,19 @@ class TweetcikSpec extends Specification with TestHelpers
   "Tweetcik.delete()" should {
 
     s"delete test tweetcik" in new WithApplication with RandomTweetcikInserting {
-      Tweetcik.delete(insertedTweetcikId) mustEqual true
+      val maybeTweetcik = getInsertedTweetcik
+      maybeTweetcik must beSome[Tweetcik]
+
+      Tweetcik.delete(maybeTweetcik.get.id) mustEqual true
+
+      getInsertedTweetcik must beNone
+
+      override def getInsertedTweetcik: Option[Tweetcik] = {
+        DB.withConnection { implicit c =>
+          SQL("select * from tweetciks where username={username} limit 1")
+            .on('username -> testTweetcik.username).as(Tweetcik.tweetcik *).headOption
+        }
+      }
     }
 
     "not be able to delete tweetcik with random id" in new WithApplication {

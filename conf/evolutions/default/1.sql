@@ -2,7 +2,7 @@
 
 # --- !Ups
 CREATE TABLE users (
-    username VARCHAR(24) NOT NULL PRIMARY KEY,
+    username VARCHAR(32) NOT NULL UNIQUE,
     password CHAR(128) NOT NULL,
     salt CHAR(128) NOT NULL
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;

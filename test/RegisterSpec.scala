@@ -1,8 +1,12 @@
+import anorm._
 import controllers._
 import helpers.TestHelpers
+import models.User
 import org.specs2.mutable._
+import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
+import scala.Some
 
 /**
  * Functional tests and specifications for Register
@@ -60,6 +64,14 @@ class RegisterSpec extends Specification with TestHelpers
 
       status(result) must equalTo(SEE_OTHER)
       redirectLocation(result) must beSome.which(_ == routes.Timeline.renderPage().toString())
+
+      DB.withConnection { implicit c =>
+        val maybeUser = SQL("select * from users where username={username} limit 1")
+          .on('username -> testUser.username).as(User.user *).headOption
+
+        maybeUser must beSome[User]
+        maybeUser.get.username mustEqual testUser.username
+      }
     }
   }
 }

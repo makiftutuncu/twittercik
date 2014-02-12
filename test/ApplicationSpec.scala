@@ -9,12 +9,6 @@ import play.api.test.Helpers._
  */
 class ApplicationSpec extends Specification with TestHelpers
 {
-  "Application" should {
-    "send 404 on a bad request" in new WithApplication {
-      route(FakeRequest(GET, "/foo")) must beNone
-    }
-  }
-
   "Application.index()" should {
 
     "render the index page without valid credentials" in new WithApplication {

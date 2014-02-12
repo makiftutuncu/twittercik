@@ -27,7 +27,7 @@ object Timeline extends Controller
    * takes user to welcome page otherwise.
    */
   def renderPage = Action {
-    implicit request => Application.isAuthorized(request) match {
+    implicit request => Application.getSessionForRequest(request) match {
       case Some(session: Session) =>
         User.read(session.username) match {
           case Some(user: User) =>
@@ -56,7 +56,7 @@ object Timeline extends Controller
         Redirect(routes.Timeline.renderPage())
       },
       tweetcikContent => {
-        Application.isAuthorized(request) match {
+        Application.getSessionForRequest(request) match {
           case Some(session: Session) =>
             Logger.debug(s"Timeline.submitTweetcik() - Posting a new tweetcik as ${tweetcikContent.content} as user named ${session.username}...")
             Tweetcik.create(session.username, tweetcikContent.content, System.currentTimeMillis()) match {
@@ -81,12 +81,14 @@ object Timeline extends Controller
    * @param id  Id of the tweetcik to delete
    */
   def deleteTweetcik(id: Long) = Action {
-    implicit request => Application.isAuthorized(request) match {
+    implicit request => Application.getSessionForRequest(request) match {
       case Some(session: Session) =>
         User.read(session.username) match {
           case Some(user: User) =>
             Logger.debug(s"Timeline.deleteTweetcik() - Deleting tweetcik with id $id...")
-            Tweetcik.delete(id)
+            if(!Tweetcik.delete(id)) {
+              Logger.error(s"Timeline.deleteTweetcik() - Deleting tweetcik with id $id failed!")
+            }
             Redirect(routes.Timeline.renderPage())
           case _ =>
             // This case shan't be accessed because if session is found, it guarantees that user exists too

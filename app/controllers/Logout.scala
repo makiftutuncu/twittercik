@@ -14,10 +14,12 @@ object Logout extends Controller
    * and takes user to welcome page
    */
   def logout = Action {
-    implicit request => Application.isAuthorized(request) match {
+    implicit request => Application.getSessionForRequest(request) match {
       case Some(session: Session) =>
         Logger.debug(s"Logout.logout() - Logging user named ${session.username} out...")
-        Session.delete(session.cookieid)
+        if(!Session.delete(session.cookieid)) {
+          Logger.error(s"Logout.logout() - Logging user named ${session.username} failed!")
+        }
         Redirect(routes.Application.index())
           .withNewSession.discardingCookies(DiscardingCookie(name = "logged_user"))
       case None =>

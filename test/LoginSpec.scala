@@ -1,8 +1,11 @@
 import controllers._
 import helpers.TestHelpers
+import models.User
 import org.specs2.mutable._
+import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
+import anorm._
 
 /**
  * Functional tests and specifications for Login
@@ -49,6 +52,14 @@ class LoginSpec extends Specification with TestHelpers
 
       status(result) must equalTo(SEE_OTHER)
       redirectLocation(result) must beSome.which(_ == routes.Timeline.renderPage().toString())
+
+      DB.withConnection { implicit c =>
+        val maybeUser = SQL("select * from users where username={username} limit 1")
+          .on('username -> testUser.username).as(User.user *).headOption
+
+        maybeUser must beSome[User]
+        maybeUser.get.username mustEqual testUser.username
+      }
     }
 
     "not be able to log user in since user is already logged in and redirect to welcome" in new WithApplication with KnownSessionInsertingAndDeleting {

@@ -26,7 +26,7 @@ object Register extends Controller
    * shows register page otherwise.
    */
   def renderPage = Action {
-    implicit request => Application.isAuthorized(request) match {
+    implicit request => Application.getSessionForRequest(request) match {
       case Some(session: Session) =>
         println(s"Register.renderPage() - User named ${session.username} is already logged in. Redirecting to timeline...")
         Redirect(routes.Timeline.renderPage())

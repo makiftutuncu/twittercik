@@ -9,6 +9,9 @@ GET     /                                       controllers.Application.index
 GET     /login                                  controllers.Login.renderPage
 POST    /login                                  controllers.Login.submitLoginForm
 
+# Facebook Login page
+GET     /facebookLogin                          controllers.FacebookLogin.facebookLogin
+
 # Register page
 GET     /register                               controllers.Register.renderPage
 POST    /register                               controllers.Register.submitRegisterForm

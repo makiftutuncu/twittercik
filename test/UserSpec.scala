@@ -1,6 +1,8 @@
+import anorm._
 import helpers.TestHelpers
 import org.specs2.mutable._
 import models.User
+import play.api.db.DB
 import play.api.test.WithApplication
 
 /**
@@ -12,6 +14,14 @@ class UserSpec extends Specification with TestHelpers
 
     "create a test user" in new WithApplication with RandomUserDeleting {
       User.create(testUser.username, testUser.password) must beSome.which(_.username == testUser.username)
+
+      DB.withConnection { implicit c =>
+        val maybeUser = SQL("select * from users where username={username} limit 1")
+          .on('username -> testUser.username).as(User.user *).headOption
+
+        maybeUser must beSome[User]
+        maybeUser.get.username mustEqual testUser.username
+      }
     }
 
     "not be able to create user with same name" in new WithApplication with RandomUserInsertingAndDeleting {

@@ -1,8 +1,12 @@
+import anorm._
 import controllers._
 import helpers.TestHelpers
+import models.Tweetcik
 import org.specs2.mutable._
+import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
+import scala.Some
 
 /**
  * Functional tests and specifications for Timeline
@@ -45,6 +49,17 @@ class TimelineSpec extends Specification with TestHelpers
 
       status(result) must equalTo(SEE_OTHER)
       redirectLocation(result) must beSome.which(_ == routes.Timeline.renderPage().toString())
+
+      val maybeTweetcik = getInsertedTweetcik
+      maybeTweetcik must beSome[Tweetcik]
+      maybeTweetcik.get.content mustEqual testTweetcik.content
+
+      override def getInsertedTweetcik: Option[Tweetcik] = {
+        DB.withConnection { implicit c =>
+          SQL("select * from tweetciks where username={username} limit 1")
+            .on('username -> testTweetcik.username).as(Tweetcik.tweetcik *).headOption
+        }
+      }
     }
 
     "redirect to welcome page with invalid credentials" in new WithApplication {
@@ -59,11 +74,23 @@ class TimelineSpec extends Specification with TestHelpers
   "Timeline.deleteTweetcik()" should {
 
     "delete tweetcik and redirect to timeline page" in new WithApplication with KnownTweetcikInserting {
-      val result = controllers.Timeline.deleteTweetcik(insertedTweetcikId)(FakeRequest()
+      val maybeTweetcik = getInsertedTweetcik
+      maybeTweetcik must beSome[Tweetcik]
+
+      val result = controllers.Timeline.deleteTweetcik(maybeTweetcik.get.id)(FakeRequest()
         .withSession("logged_user" -> testSession.cookieid))
 
       status(result) must equalTo(SEE_OTHER)
       redirectLocation(result) must beSome.which(_ == routes.Timeline.renderPage().toString())
+
+      getInsertedTweetcik must beNone
+
+      override def getInsertedTweetcik: Option[Tweetcik] = {
+        DB.withConnection { implicit c =>
+          SQL("select * from tweetciks where username={username} limit 1")
+            .on('username -> testTweetcik.username).as(Tweetcik.tweetcik *).headOption
+        }
+      }
     }
 
     "redirect to welcome page with invalid credentials" in new WithApplication {

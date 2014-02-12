@@ -231,23 +231,28 @@ trait TestHelpers
   trait RandomTweetcikInsertingAndDeleting extends RandomUserInsertingAndDeleting
   {
     val testTweetcik: Tweetcik = generateTweetcik(testUser)
-    var insertedTweetcikId: Long = -1
+    def getInsertedTweetcik: Option[Tweetcik] = {
+      DB.withConnection { implicit c =>
+        SQL("select * from tweetciks where username={username} limit 1")
+          .on('username -> testTweetcik.username).as(Tweetcik.tweetcik *).headOption
+      }
+    }
 
     override def around[T : AsResult](t: =>T) = super.around {
       DB.withConnection { implicit c =>
         insertTweetcikSQL(testTweetcik).executeUpdate()
-        SQL("select * from tweetciks where username={username} and tweetcikdate={tweetcikdate} limit 1")
-          .on('username -> testTweetcik.username, 'tweetcikdate -> testTweetcik.date)
-          .as(Tweetcik.tweetcik *).headOption match {
-          case Some(tweetcik: Tweetcik) =>
-            insertedTweetcikId = tweetcik.id
-          case _ =>
-            insertedTweetcikId = -1
+        getInsertedTweetcik match {
+          case Some(tweetcik: Tweetcik) => // This is OK
+          case _ => throw new Exception("Could not insert the test tweetcik!")
         }
       }
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteTweetcikSQL(insertedTweetcikId).executeUpdate()
+        getInsertedTweetcik match {
+          case Some(tweetcik: Tweetcik) =>
+            deleteTweetcikSQL(tweetcik.id).executeUpdate()
+          case _ => throw new Exception("Could not delete the test tweetcik!")
+        }
       }
       result
     }
@@ -259,18 +264,14 @@ trait TestHelpers
   trait RandomTweetcikInserting extends RandomUserInsertingAndDeleting
   {
     val testTweetcik: Tweetcik = generateTweetcik(testUser)
-    var insertedTweetcikId: Long = -1
+    def getInsertedTweetcik: Option[Tweetcik]
 
     override def around[T : AsResult](t: =>T) = super.around {
       DB.withConnection { implicit c =>
         insertTweetcikSQL(testTweetcik).executeUpdate()
-        SQL("select * from tweetciks where username={username} and tweetcikdate={tweetcikdate} limit 1")
-          .on('username -> testTweetcik.username, 'tweetcikdate -> testTweetcik.date)
-          .as(Tweetcik.tweetcik *).headOption match {
-          case Some(tweetcik: Tweetcik) =>
-            insertedTweetcikId = tweetcik.id
-          case _ =>
-            insertedTweetcikId = -1
+        getInsertedTweetcik match {
+          case Some(tweetcik: Tweetcik) => // This is OK
+          case _ => throw new Exception("Could not insert the test tweetcik!")
         }
       }
       AsResult(t)
@@ -283,20 +284,16 @@ trait TestHelpers
   trait RandomTweetcikDeleting extends RandomUserInsertingAndDeleting
   {
     val testTweetcik: Tweetcik = generateTweetcik(testUser)
-    var insertedTweetcikId: Long = -1
+    def getInsertedTweetcik: Option[Tweetcik]
 
     override def around[T : AsResult](t: =>T) = super.around {
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        SQL("select * from tweetciks where username={username} and tweetcikdate={tweetcikdate} limit 1")
-          .on('username -> testTweetcik.username, 'tweetcikdate -> testTweetcik.date)
-          .as(Tweetcik.tweetcik *).headOption match {
+        getInsertedTweetcik match {
           case Some(tweetcik: Tweetcik) =>
-            insertedTweetcikId = tweetcik.id
-          case _ =>
-            insertedTweetcikId = -1
+            deleteTweetcikSQL(tweetcik.id).executeUpdate()
+          case _ => throw new Exception("Could not delete the test tweetcik!")
         }
-        deleteTweetcikSQL(insertedTweetcikId).executeUpdate()
       }
       result
     }
@@ -400,18 +397,14 @@ trait TestHelpers
   trait KnownTweetcikInserting extends RandomSessionInsertingAndDeleting
   {
     val testTweetcik: Tweetcik = generateTweetcik(testUser)
-    var insertedTweetcikId: Long = -1
+    def getInsertedTweetcik: Option[Tweetcik]
 
     override def around[T : AsResult](t: =>T) = super.around {
       DB.withConnection { implicit c =>
         insertTweetcikSQL(testTweetcik).executeUpdate()
-        SQL("select * from tweetciks where username={username} and tweetcikdate={tweetcikdate} limit 1")
-          .on('username -> testTweetcik.username, 'tweetcikdate -> testTweetcik.date)
-          .as(Tweetcik.tweetcik *).headOption match {
-          case Some(tweetcik: Tweetcik) =>
-            insertedTweetcikId = tweetcik.id
-          case _ =>
-            insertedTweetcikId = -1
+        getInsertedTweetcik match {
+          case Some(tweetcik: Tweetcik) => // This is OK
+          case _ => throw new Exception("Could not insert the test tweetcik!")
         }
       }
       AsResult(t)
@@ -424,20 +417,16 @@ trait TestHelpers
   trait KnownTweetcikDeleting extends RandomSessionInsertingAndDeleting
   {
     val testTweetcik: Tweetcik = generateTweetcik(testUser)
-    var insertedTweetcikId: Long = -1
+    def getInsertedTweetcik: Option[Tweetcik]
 
     override def around[T : AsResult](t: =>T) = super.around {
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        SQL("select * from tweetciks where username={username} limit 1")
-          .on('username -> testTweetcik.username, 'tweetcikdate -> testTweetcik.date)
-          .as(Tweetcik.tweetcik *).headOption match {
+        getInsertedTweetcik match {
           case Some(tweetcik: Tweetcik) =>
-            insertedTweetcikId = tweetcik.id
-          case _ =>
-            insertedTweetcikId = -1
+            deleteTweetcikSQL(tweetcik.id).executeUpdate()
+          case _ => throw new Exception("Could not delete the test tweetcik!")
         }
-        deleteTweetcikSQL(insertedTweetcikId).executeUpdate()
       }
       result
     }
