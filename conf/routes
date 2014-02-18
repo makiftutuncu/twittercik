@@ -13,7 +13,7 @@ POST    /login                                  controllers.Login.submitLoginFor
 GET     /facebookLogin                          controllers.FacebookLogin.facebookLogin
 
 # Register page
-GET     /register                               controllers.Register.renderPage
+GET     /register                               controllers.Register.renderPage(userid: String, username: String, accesstoken: String, expire: String)
 POST    /register                               controllers.Register.submitRegisterForm
 
 # Timeline page

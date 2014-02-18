@@ -1,7 +1,7 @@
 package helpers
 
 import scala.util.Random
-import models.{Tweetcik, Session, User}
+import models._
 import anorm._
 import play.api.test.WithApplication
 import org.specs2.execute.AsResult
@@ -54,6 +54,17 @@ trait TestHelpers
   def generateTweetcik(user: User): Tweetcik = Tweetcik(-1, user.username, generateRandomText(140), System.currentTimeMillis())
 
   /**
+   * Generates a dummy FacebookUser object with random information
+   *
+   * @return  A dummy FacebookUser object with random information
+   */
+  def generateFacebookUser: FacebookUser = {
+    val username = "USERNAME_" + generateRandomText
+    FacebookUser(username, "FBUSERID_" + generateRandomText,
+      "FBACCESSTOKEN_" + generateRandomText(128), System.currentTimeMillis(), 1234567)
+  }
+
+  /**
    * Generates SQL for inserting given user to the database
    *
    * @param user User to insert
@@ -68,13 +79,13 @@ trait TestHelpers
   /**
    * Generates SQL for deleting given user from the database
    *
-   * @param user User to delete
+   * @param username Name of the user to delete
    *
    * @return  SQL for deleting given user from the database
    */
-  def deleteUserSQL(user: User) = {
+  def deleteUserSQL(username: String) = {
     SQL("delete from users where username={username}")
-      .on('username -> user.username)
+      .on('username -> username)
   }
 
   /**
@@ -92,13 +103,13 @@ trait TestHelpers
   /**
    * Generates SQL for deleting given session from the database
    *
-   * @param session Session to delete
+   * @param username Name of the user whose session to delete
    *
    * @return  SQL for deleting given session from the database
    */
-  def deleteSessionSQL(session: Session) = {
+  def deleteSessionSQL(username: String) = {
     SQL("delete from sessions where username = {username}")
-      .on('username -> session.username)
+      .on('username -> username)
   }
 
   /**
@@ -126,6 +137,32 @@ trait TestHelpers
   }
 
   /**
+   * Generates SQL for inserting given Facebook user to the database
+   *
+   * @param facebookUser FacebookUser to insert
+   *
+   * @return  SQL for inserting given Facebook user to the database
+   */
+  def insertFacebookUserSQL(facebookUser: FacebookUser) = {
+    SQL("insert into facebookusers (userid, username, accesstoken, logintime, expire) values ({userid}, {username}, {accesstoken}, {logintime}, {expire})")
+      .on('userid -> facebookUser.userid, 'username -> facebookUser.username,
+        'accesstoken -> facebookUser.accesstoken, 'logintime -> facebookUser.logintime,
+        'expire -> facebookUser.expire)
+  }
+
+  /**
+   * Generates SQL for deleting given Facebook user from the database
+   *
+   * @param username Name of the Facebook user to delete
+   *
+   * @return  SQL for deleting given facebookUser from the database
+   */
+  def deleteFacebookUserSQL(username: String) = {
+    SQL("delete from facebookusers where username={username}")
+      .on('username -> username)
+  }
+
+  /**
    * An around wrapping the test between inserting and deleting the random test user
    */
   trait RandomUserInsertingAndDeleting extends WithApplication
@@ -138,7 +175,7 @@ trait TestHelpers
       }
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteUserSQL(testUser).executeUpdate()
+        deleteUserSQL(testUser.username).executeUpdate()
       }
       result
     }
@@ -169,7 +206,7 @@ trait TestHelpers
     override def around[T : AsResult](t: =>T) = super.around {
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteUserSQL(testUser).executeUpdate()
+        deleteUserSQL(testUser.username).executeUpdate()
       }
       result
     }
@@ -188,7 +225,7 @@ trait TestHelpers
       }
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteSessionSQL(testSession).executeUpdate()
+        deleteSessionSQL(testSession.username).executeUpdate()
       }
       result
     }
@@ -219,7 +256,7 @@ trait TestHelpers
     override def around[T : AsResult](t: =>T) = super.around {
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteSessionSQL(testSession).executeUpdate()
+        deleteSessionSQL(testSession.username).executeUpdate()
       }
       result
     }
@@ -315,7 +352,7 @@ trait TestHelpers
       }
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteUserSQL(testUser).executeUpdate()
+        deleteUserSQL(testUser.username).executeUpdate()
       }
       result
     }
@@ -334,7 +371,7 @@ trait TestHelpers
     override def around[T : AsResult](t: =>T) = super.around {
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteUserSQL(testUser).executeUpdate()
+        deleteUserSQL(testUser.username).executeUpdate()
       }
       result
     }
@@ -350,7 +387,7 @@ trait TestHelpers
     override def around[T : AsResult](t: =>T) = super.around {
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteSessionSQL(testSession).executeUpdate()
+        deleteSessionSQL(testSession.username).executeUpdate()
       }
       result
     }
@@ -369,7 +406,7 @@ trait TestHelpers
       }
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteSessionSQL(testSession).executeUpdate()
+        deleteSessionSQL(testSession.username).executeUpdate()
       }
       result
     }
@@ -385,7 +422,7 @@ trait TestHelpers
     override def around[T : AsResult](t: =>T) = super.around {
       val result = AsResult(t)
       DB.withConnection { implicit c =>
-        deleteSessionSQL(testSession).executeUpdate()
+        deleteSessionSQL(testSession.username).executeUpdate()
       }
       result
     }
@@ -427,6 +464,62 @@ trait TestHelpers
             deleteTweetcikSQL(tweetcik.id).executeUpdate()
           case _ => throw new Exception("Could not delete the test tweetcik!")
         }
+      }
+      result
+    }
+  }
+
+  /**
+   * An around performing the test after inserting the random test Facebook user
+   */
+  trait RandomFacebookUserInserting extends WithApplication
+  {
+    val testFacebookUser: FacebookUser = generateFacebookUser
+    val testUser: User = User(testFacebookUser.username, "PASSWORD_" + generateRandomText, "SALT_" + generateRandomText)
+
+    override def around[T : AsResult](t: =>T) = super.around {
+      DB.withConnection { implicit c =>
+        insertUserSQL(testUser).executeUpdate()
+        insertFacebookUserSQL(testFacebookUser).executeUpdate()
+      }
+      AsResult(t)
+    }
+  }
+
+  /**
+   * An around wrapping the test between inserting and deleting the random test Facebook user
+   */
+  trait RandomFacebookUserInsertingAndDeleting extends WithApplication
+  {
+    val testFacebookUser: FacebookUser = generateFacebookUser
+    val testUser: User = User(testFacebookUser.username, "PASSWORD_" + generateRandomText, "SALT_" + generateRandomText)
+
+    override def around[T : AsResult](t: =>T) = super.around {
+      DB.withConnection { implicit c =>
+        insertUserSQL(testUser).executeUpdate()
+        insertFacebookUserSQL(testFacebookUser).executeUpdate()
+      }
+      val result = AsResult(t)
+      DB.withConnection { implicit c =>
+        deleteFacebookUserSQL(testFacebookUser.username).executeUpdate()
+        deleteUserSQL(testUser.username).executeUpdate()
+      }
+      result
+    }
+  }
+
+  /**
+   * An around performing the test before deleting the random test Facebook user
+   */
+  trait RandomFacebookUserDeleting extends WithApplication
+  {
+    val testFacebookUser: FacebookUser = generateFacebookUser
+
+    override def around[T : AsResult](t: =>T) = super.around {
+      val result = AsResult(t)
+      DB.withConnection { implicit c =>
+        deleteFacebookUserSQL(testFacebookUser.username).executeUpdate()
+        deleteUserSQL(testFacebookUser.username).executeUpdate()
       }
       result
     }

@@ -1,4 +1,4 @@
-@(error: String = "")
+@(error: String = "", userid: String = "", username: String = "", accesstoken: String = "", expire: String = "")
 @import navbar._
 @scripts = {
 <!-- SHA512 Generator JS -->
@@ -28,12 +28,15 @@
                             <div class="row row-with-margin">
                                 <div class="input-group">
                                     <span class="input-group-addon">@@</span>
-                                    <input name="username" type="text" class="form-control" placeholder="Username">
+                                    <input name="username" type="text" class="form-control" placeholder="Username" value="@username">
                                 </div>
                             </div>
                             <div class="row row-with-margin">
                                 <input name="password" type="password" class="form-control" placeholder="Password">
                             </div>
+                            <input name="userid" type="hidden" value="@userid">
+                            <input name="accesstoken" type="hidden" value="@accesstoken">
+                            <input name="expire" type="hidden" value="@expire">
                             <div class="row row-with-margin">
                                 <button class="btn btn-success" type="submit" onclick="return validateForm(this.form, this.form.username, this.form.password);" style="float: right;">Register</button>
                             </div>
@@ -54,8 +57,20 @@
                     @if(error == "username_exists") {
                     <p>The username you selected is already registered. Pick another username.</p>
                     }
+                    @if(error == "facebook_error") {
+                    <p>There was an error with Facebook login. You can continue registration manually.</p>
+                    }
                 </div>
             </div>
+        }
+        @if(userid != "" && username != "" && accesstoken != "" && expire != "") {
+        <!-- Info -->
+        <div class="row">
+            <div class="alert alert-info error">
+                <p>You are registering with your Facebook account.</p>
+                <p>Change your username (taken from Facebook) if you want, and enter a password for your Twittercık account.</p>
+            </div>
+        </div>
         }
     </div>
     }

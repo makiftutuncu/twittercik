@@ -16,7 +16,7 @@ class RegisterSpec extends Specification with TestHelpers
   "Register.renderPage()" should {
 
     "render the register page without valid credentials" in new WithApplication {
-      val register = controllers.Register.renderPage()(FakeRequest())
+      val register = controllers.Register.renderPage("", "", "", "")(FakeRequest())
 
       status(register) must equalTo(OK)
       contentType(register) must beSome.which(_ == "text/html")
@@ -24,7 +24,7 @@ class RegisterSpec extends Specification with TestHelpers
     }
 
     "redirect to timeline with valid credentials" in new WithApplication with RandomSessionInsertingAndDeleting {
-      val result = controllers.Register.renderPage()(FakeRequest()
+      val result = controllers.Register.renderPage("", "", "", "")(FakeRequest()
         .withSession("logged_user" -> testSession.cookieid))
 
       status(result) must equalTo(SEE_OTHER)
@@ -59,7 +59,10 @@ class RegisterSpec extends Specification with TestHelpers
     "register, log user in and redirect to timeline for valid username/password" in new WithApplication with KnownSessionAndUserDeleting {
       val result = controllers.Register.submitRegisterForm()(FakeRequest().withFormUrlEncodedBody(
         "username" -> testUser.username,
-        "hashedpassword" -> nonSaltedPassword
+        "hashedpassword" -> nonSaltedPassword,
+        "userid" -> "",
+        "accesstoken" -> "",
+        "expire" -> ""
       ))
 
       status(result) must equalTo(SEE_OTHER)
