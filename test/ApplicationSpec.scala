@@ -1,5 +1,5 @@
 import controllers._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
@@ -7,7 +7,7 @@ import play.api.test.Helpers._
 /**
  * Functional tests and specifications for Application
  */
-class ApplicationSpec extends Specification with TestHelpers
+class ApplicationSpec extends Specification
 {
   "Application.index()" should {
 

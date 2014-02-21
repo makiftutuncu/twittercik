@@ -1,5 +1,5 @@
 import anorm._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import org.specs2.mutable._
 import models.Session
 import play.api.db.DB
@@ -8,7 +8,7 @@ import play.api.test.WithApplication
 /**
  * Integration tests and specifications for Session
  */
-class SessionSpec extends Specification with TestHelpers
+class SessionSpec extends Specification
 {
   "Session.create()" should {
 

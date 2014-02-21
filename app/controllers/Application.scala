@@ -2,7 +2,7 @@ package controllers
 
 import play.api.mvc._
 import models.Session
-import play.api.{Play, Logger}
+import play.api.Logger
 
 /**
  * Main controller and the entry point of the application

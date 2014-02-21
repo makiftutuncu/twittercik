@@ -1,5 +1,5 @@
 import controllers._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import org.specs2.mutable._
 import play.api.mvc.Cookie
 import play.api.test._
@@ -7,7 +7,7 @@ import play.api.test._
 /**
  * Unit tests and specifications for authorization by Application.getSessionForRequest()
  */
-class AuthorizationSpec extends Specification with TestHelpers
+class AuthorizationSpec extends Specification
 {
   "Authorization mechanism" should {
 

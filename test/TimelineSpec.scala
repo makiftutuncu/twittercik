@@ -1,17 +1,16 @@
 import anorm._
 import controllers._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import models.Tweetcik
 import org.specs2.mutable._
 import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
-import scala.Some
 
 /**
  * Functional tests and specifications for Timeline
  */
-class TimelineSpec extends Specification with TestHelpers
+class TimelineSpec extends Specification
 {
   "Timeline.renderPage()" should {
 

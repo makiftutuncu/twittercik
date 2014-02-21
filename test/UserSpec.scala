@@ -1,5 +1,5 @@
 import anorm._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import org.specs2.mutable._
 import models.User
 import play.api.db.DB
@@ -8,7 +8,7 @@ import play.api.test.WithApplication
 /**
  * Integration tests and specifications for User
  */
-class UserSpec extends Specification with TestHelpers
+class UserSpec extends Specification
 {
   "User.create()" should {
 

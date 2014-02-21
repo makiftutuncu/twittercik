@@ -1,10 +1,10 @@
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import org.specs2.mutable._
 
 /**
  * Integration tests and specifications for FacebookUser
  */
-class FacebookUserSpec extends Specification with TestHelpers
+class FacebookUserSpec extends Specification
 {
   // TODO: Write tests
 }

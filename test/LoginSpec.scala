@@ -1,5 +1,5 @@
 import controllers._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import models.User
 import org.specs2.mutable._
 import play.api.db.DB
@@ -10,7 +10,7 @@ import anorm._
 /**
  * Functional tests and specifications for Login
  */
-class LoginSpec extends Specification with TestHelpers
+class LoginSpec extends Specification
 {
   "Login.renderPage()" should {
 

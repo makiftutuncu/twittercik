@@ -1,6 +1,6 @@
 import anorm._
 import controllers._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import models.Session
 import org.specs2.mutable._
 import play.api.db.DB
@@ -10,7 +10,7 @@ import play.api.test.Helpers._
 /**
  * Functional tests and specifications for Logout
  */
-class LogoutSpec extends Specification with TestHelpers
+class LogoutSpec extends Specification
 {
   "Logout.logout()" should {
 

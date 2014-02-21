@@ -1,19 +1,25 @@
 import anorm._
 import controllers._
-import helpers.TestHelpers
+import helpers.TestHelpers._
 import models.User
 import org.specs2.mutable._
 import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
-import scala.Some
 
 /**
  * Functional tests and specifications for Register
  */
-class RegisterSpec extends Specification with TestHelpers
+class RegisterSpec extends Specification
 {
   "Register.renderPage()" should {
+    "redirect to timeline with valid credentials" in new WithApplication with RandomSessionInsertingAndDeleting {
+      val result = controllers.Register.renderPage("", "", "", "")(FakeRequest()
+        .withSession("logged_user" -> testSession.cookieid))
+
+      status(result) must equalTo(SEE_OTHER)
+      redirectLocation(result) must beSome.which(_ == routes.Timeline.renderPage().toString())
+    }
 
     "render the register page without valid credentials" in new WithApplication {
       val register = controllers.Register.renderPage("", "", "", "")(FakeRequest())
@@ -23,17 +29,17 @@ class RegisterSpec extends Specification with TestHelpers
       contentAsString(register) contains "Register" mustEqual true
     }
 
-    "redirect to timeline with valid credentials" in new WithApplication with RandomSessionInsertingAndDeleting {
-      val result = controllers.Register.renderPage("", "", "", "")(FakeRequest()
-        .withSession("logged_user" -> testSession.cookieid))
+    "render the register page including Facebook details without valid credentials" in new WithApplication {
+      val username = generateRandomText
+      val register = controllers.Register.renderPage(generateRandomText, username, generateRandomText, generateRandomText)(FakeRequest())
 
-      status(result) must equalTo(SEE_OTHER)
-      redirectLocation(result) must beSome.which(_ == routes.Timeline.renderPage().toString())
+      status(register) must equalTo(OK)
+      contentType(register) must beSome.which(_ == "text/html")
+      contentAsString(register) contains username mustEqual true
     }
   }
 
   "Register.submitRegisterForm()" should {
-
     "result in a bad request with invalid form data and show register page again" in new WithApplication {
       val register = controllers.Register.submitRegisterForm()(FakeRequest().withFormUrlEncodedBody(
         "username" -> "",
@@ -61,6 +67,7 @@ class RegisterSpec extends Specification with TestHelpers
         "username" -> testUser.username,
         "hashedpassword" -> nonSaltedPassword,
         "userid" -> "",
+        "fbusername" -> "",
         "accesstoken" -> "",
         "expire" -> ""
       ))
